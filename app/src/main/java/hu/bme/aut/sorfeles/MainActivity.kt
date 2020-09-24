@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package hu.bme.aut.sorfeles
 
 import android.Manifest
@@ -5,9 +7,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
-import android.os.Bundle
-import android.os.Handler
-import android.os.SystemClock
+import android.os.*
 import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
+import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
 
 
@@ -23,9 +24,13 @@ private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
 class MainActivity : AppCompatActivity() {
 
+    private var vibration_enabled = true
+
     private var fileName: String = ""
+
     private var popupRunning = false
     private var running = false
+
     private var pauseOffset : Long = 0
 
     private var permissionToRecordAccepted = false
@@ -68,7 +73,13 @@ class MainActivity : AppCompatActivity() {
     private fun stopRecording() {
         Log.d("btn", "Stop recording")
         recorder?.apply {
-            stop()
+            try {
+                stop()
+                release()
+            }
+            catch(e: RuntimeException){
+                Log.d("Mediarecorder", "Failed to stop or release!")
+            }
         }
         recorder = null
     }
@@ -103,29 +114,39 @@ class MainActivity : AppCompatActivity() {
                 SystemClock.elapsedRealtime() - it.base
             val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedMillis)
 
-            if (seconds % 60L == 55L) {
-                player = MediaPlayer().apply {
-                    try {
-                        setDataSource(fileName)
-                        prepare()
-                        start()
-                    } catch (e: IOException) {
-                        Log.e("Audio player", "prepare() failed")
+            when (seconds % 60L){
+                55L-> {
+                    if (vibration_enabled){
+                        val vibrator = applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                        if (Build.VERSION.SDK_INT >= 26) {
+                            vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+                        } else {
+                            vibrator.vibrate(500)
+                        }
                     }
+
+                    player = MediaPlayer().apply {
+                        try {
+                            setDataSource(fileName)
+                            prepare()
+                            start()
+                        } catch (e: IOException) {
+                            Log.e("Audio player", "prepare() failed")
+                        }
+                    }
+
+                    showPopupWindow(LinearLayout(this),R.layout.popup_window_toast)
                 }
-
-                showPopupWindow(LinearLayout(this),R.layout.popup_window_toast)
-
-            }
-            if (seconds % 60L == 0L) {
-                showPopupWindow(LinearLayout(this), R.layout.popup_window_drink)
+                0L-> {
+                    showPopupWindow(LinearLayout(this), R.layout.popup_window_drink)
+                }
             }
         }
 
         record.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {startRecording(); v.performClick()}
-                MotionEvent.ACTION_UP -> {Thread.sleep(100);stopRecording()}
+                MotionEvent.ACTION_UP -> {stopRecording()}
             }
 
             v?.onTouchEvent(event) ?: true
