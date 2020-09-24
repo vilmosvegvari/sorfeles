@@ -81,15 +81,15 @@ class MainActivity : AppCompatActivity() {
 
         button.setOnClickListener {
             if (running){
-                pauseOffset =   SystemClock.elapsedRealtime() - chronometer.base;
-                chronometer.stop();
-                button.text = "Start";
+                pauseOffset =   SystemClock.elapsedRealtime() - chronometer.base
+                chronometer.stop()
+                button.text = getString(R.string.start_text)
                 running = false
             }
             else {
-                chronometer.base = SystemClock.elapsedRealtime() - pauseOffset;
+                chronometer.base = SystemClock.elapsedRealtime() - pauseOffset
                 chronometer.start()
-                button.text = "Stop";
+                button.text = getString(R.string.stop_text)
                 running = true
             }
         }
@@ -105,7 +105,6 @@ class MainActivity : AppCompatActivity() {
             val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedMillis)
 
             if (seconds % 60L == 55L) {
-                //Toast.makeText(applicationContext, "TOAST!", Toast.LENGTH_SHORT).show()
                 player = MediaPlayer().apply {
                     try {
                         setDataSource(fileName)
@@ -116,12 +115,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                ShowPopupWindowToast(LinearLayout(this))
+                showPopupWindow(LinearLayout(this),R.layout.popup_window_toast)
 
             }
             if (seconds % 60L == 0L) {
-                //Toast.makeText(applicationContext, "DRINK!", Toast.LENGTH_SHORT).show()
-                ShowPopupWindowDrink(LinearLayout(this))
+                showPopupWindow(LinearLayout(this), R.layout.popup_window_drink)
             }
         }
 
@@ -140,48 +138,14 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun ShowPopupWindowToast(view: View?) {
-
+    private fun showPopupWindow(location_view: View, layout_id: Int) {
         if (popupRunning) return
 
         popupRunning = true
         // inflate the layout of the popup window
         val inflater =
             getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val popupView: View = inflater.inflate(R.layout.popup_window_toast, null)
-
-        // create the popup window
-        val width = LinearLayout.LayoutParams.MATCH_PARENT
-        val height = LinearLayout.LayoutParams.WRAP_CONTENT
-        val focusable = true // lets taps outside the popup also dismiss it
-        val popupWindow = PopupWindow(popupView, width, height, focusable)
-
-
-        val handler = Handler()
-        val runnable = Runnable {
-            if (popupWindow.isShowing) {
-                popupWindow.dismiss()
-                popupRunning = false
-            }
-        }
-
-        // show the popup window
-        // which view you pass in doesn't matter, it is only used for the window tolken
-        popupWindow.showAtLocation(view, Gravity.TOP, 0, 0)
-
-        // dismiss the popup window when touched
-        handler.postDelayed(runnable,1500)
-    }
-
-    fun ShowPopupWindowDrink(view: View?) {
-
-        if (popupRunning) return
-
-        popupRunning = true
-        // inflate the layout of the popup window
-        val inflater =
-            getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val popupView: View = inflater.inflate(R.layout.popup_window_drink, null)
+        val popupView: View = inflater.inflate(layout_id, null)
 
         // create the popup window
         val width = LinearLayout.LayoutParams.MATCH_PARENT
@@ -189,7 +153,6 @@ class MainActivity : AppCompatActivity() {
         val focusable = false // lets taps outside the popup also dismiss it
         val popupWindow = PopupWindow(popupView, width, height, focusable)
 
-
         val handler = Handler()
         val runnable = Runnable {
             if (popupWindow.isShowing) {
@@ -200,7 +163,7 @@ class MainActivity : AppCompatActivity() {
 
         // show the popup window
         // which view you pass in doesn't matter, it is only used for the window tolken
-        popupWindow.showAtLocation(view, Gravity.TOP, 0, 0)
+        popupWindow.showAtLocation(location_view, Gravity.TOP, 0, 0)
 
         // dismiss the popup window when touched
         handler.postDelayed(runnable,1500)
