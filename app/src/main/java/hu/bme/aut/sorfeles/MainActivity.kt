@@ -69,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         Log.d("btn", "Stop recording")
         recorder?.apply {
             stop()
-            release()
         }
         recorder = null
     }
@@ -126,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         record.setOnTouchListener { v, event ->
             when (event?.action) {
                 MotionEvent.ACTION_DOWN -> {startRecording(); v.performClick()}
-                MotionEvent.ACTION_UP -> stopRecording()
+                MotionEvent.ACTION_UP -> {Thread.sleep(100);stopRecording()}
             }
 
             v?.onTouchEvent(event) ?: true
