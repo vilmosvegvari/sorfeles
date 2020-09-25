@@ -39,7 +39,7 @@
             android:background="@drawable/custom_btn"
             android:textSize="24sp"
             android:padding="10dp"
-            android:text="Start" />
+            android:text="@string/start_text" />
 
         <Button
             android:id="@+id/reset"
@@ -50,7 +50,7 @@
             android:background="@drawable/custom_btn"
             android:padding="10dp"
             android:textSize="24sp"
-            android:text="Reset" />
+            android:text="@string/reset_text" />
 
         <ImageButton
             android:id="@+id/record"
@@ -62,19 +62,17 @@
             android:src="@drawable/ic_voice_microphone_symbol"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
-            android:contentDescription="microphone" />
+            android:contentDescription="@string/microphone" />
 
-        <Switch
-            android:id="@+id/vibrationSwitch"
+        <Button
+            android:id="@+id/settingsBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Vibration"
-            android:textSize="15sp"
-            android:textAlignment="center" />
-
-
-
+            android:layout_marginTop="20dp"
+            android:background="@drawable/custom_btn"
+            android:textSize="12sp"
+            android:text="@string/settings_text" />
 
     </LinearLayout>
 

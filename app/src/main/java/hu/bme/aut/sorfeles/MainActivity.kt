@@ -3,6 +3,7 @@
 package hu.bme.aut.sorfeles
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
@@ -16,6 +17,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.settings_main.*
+import kotlinx.android.synthetic.main.settings_main.view.*
 import java.io.IOException
 import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
@@ -33,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private var running = false
 
     private var pauseOffset : Long = 0
+    private var whenToPlay : Long = 55L
 
     private var permissionToRecordAccepted = false
     private var permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO)
@@ -118,7 +122,7 @@ class MainActivity : AppCompatActivity() {
             val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedMillis)
 
             when (seconds % 60L){
-                55L-> {
+                whenToPlay-> {
                     if (vibrationEnabled){
                         val vibrator = applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                         if (Build.VERSION.SDK_INT >= 26) {
@@ -138,10 +142,10 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    showPopupWindow(LinearLayout(this),R.layout.popup_window_toast)
+                    showPopupWindowForSeconds(LinearLayout(this),R.layout.popup_window_toast)
                 }
                 0L-> {
-                    showPopupWindow(LinearLayout(this), R.layout.popup_window_drink)
+                    showPopupWindowForSeconds(LinearLayout(this), R.layout.popup_window_drink)
                 }
             }
         }
@@ -159,12 +163,47 @@ class MainActivity : AppCompatActivity() {
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION)
 
-        vibrationSwitch.setOnCheckedChangeListener { _, isChecked ->
-            vibrationEnabled = isChecked
+        settingsBtn.setOnClickListener{v->
+            showSettingsDialog()
         }
     }
 
-    private fun showPopupWindow(location_view: View, layout_id: Int) {
+    @SuppressLint("InflateParams")
+    private fun showSettingsDialog(){
+        val inflater =
+            getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val popupView: View = inflater.inflate(R.layout.settings_main, null)
+
+        // create the popup window
+        val width = LinearLayout.LayoutParams.WRAP_CONTENT
+        val height = LinearLayout.LayoutParams.WRAP_CONTENT
+        val focusable = true // lets taps outside the popup also dismiss it
+        val popupWindow = PopupWindow(popupView, width, height, focusable)
+
+        // show the popup window
+        // which view you pass in doesn't matter, it is only used for the window token
+
+        popupView.vibrationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            vibrationEnabled = isChecked
+        }
+
+        popupView.numberPicker.maxValue=60
+        popupView.numberPicker.minValue=1
+        popupView.numberPicker.value=whenToPlay.toInt()
+
+        popupView.numberPicker.setOnValueChangedListener { _, i, i2 ->
+            Log.d("Numberpicker", "Changed to: $i2")
+            whenToPlay = i2.toLong()
+        }
+
+        popupView.closeSettingsBtn.setOnClickListener{ v->
+            popupWindow.dismiss()
+        }
+
+        popupWindow.showAtLocation(LinearLayout(this), Gravity.CENTER, 0, 0)
+    }
+
+    private fun showPopupWindowForSeconds(location_view: View, layout_id: Int) {
         if (popupRunning) return
 
         popupRunning = true
