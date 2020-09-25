@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,7 +25,7 @@ private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
 class MainActivity : AppCompatActivity() {
 
-    private var vibration_enabled = true
+    private var vibrationEnabled = false
 
     private var fileName: String = ""
 
@@ -76,9 +77,11 @@ class MainActivity : AppCompatActivity() {
             try {
                 stop()
                 release()
+                Toast.makeText(applicationContext,"Recording saved!",Toast.LENGTH_SHORT).show()
             }
             catch(e: RuntimeException){
                 Log.d("Mediarecorder", "Failed to stop or release!")
+                Toast.makeText(applicationContext,"Recording could not be saved!",Toast.LENGTH_SHORT).show()
             }
         }
         recorder = null
@@ -116,7 +119,7 @@ class MainActivity : AppCompatActivity() {
 
             when (seconds % 60L){
                 55L-> {
-                    if (vibration_enabled){
+                    if (vibrationEnabled){
                         val vibrator = applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                         if (Build.VERSION.SDK_INT >= 26) {
                             vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
@@ -156,6 +159,9 @@ class MainActivity : AppCompatActivity() {
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION)
 
+        vibrationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            vibrationEnabled = isChecked
+        }
     }
 
     private fun showPopupWindow(location_view: View, layout_id: Int) {
